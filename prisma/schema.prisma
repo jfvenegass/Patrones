@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Student {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  name      String
+  email     String   @unique
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  enrollments Enrollment[]
+}
+
+model Course {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  name      String
+  term      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sections Section[]
+}
+
+model Section {
+  id        String   @id @default(uuid())
+  courseId  String
+  teacher   String
+  schedule  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  course      Course     @relation(fields: [courseId], references: [id])
+  enrollments Enrollment[]
+  assessments Assessment[]
+}
+
+model Enrollment {
+  id         String   @id @default(uuid())
+  studentId  String
+  sectionId  String
+  createdAt  DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id])
+  section Section @relation(fields: [sectionId], references: [id])
+  grades  Grade[]
+}
+
+model Assessment {
+  id         String   @id @default(uuid())
+  sectionId  String
+  type       String   // parcial, final, proyecto, quiz
+  maxScore   Int
+  createdAt  DateTime @default(now())
+
+  section Section @relation(fields: [sectionId], references: [id])
+  grades  Grade[]
+}
+
+model Grade {
+  id           String     @id @default(uuid())
+  assessmentId String
+  enrollmentId String
+  score        Float
+  recordedAt   DateTime   @default(now())
+
+  assessment Assessment @relation(fields: [assessmentId], references: [id])
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id])
+}

@@ -14,7 +14,7 @@ export class ReportIterator implements AsyncIterable<GradeRow> {
   constructor(
     private prisma: PrismaClient,
     private sectionId: string,
-    private pageSize = 100
+    private pageSize = 100,
   ) {}
 
   [Symbol.asyncIterator](): AsyncIterator<GradeRow> {
@@ -26,9 +26,9 @@ export class ReportIterator implements AsyncIterable<GradeRow> {
           where: { enrollment: { sectionId: this.sectionId } },
           include: {
             assessment: true,
-            enrollment: { include: { student: true } }
+            enrollment: { include: { student: true } },
           },
-          orderBy: { recordedAt: 'asc' }
+          orderBy: { recordedAt: 'asc' },
         });
 
         if (rows.length === 0) {
@@ -44,11 +44,11 @@ export class ReportIterator implements AsyncIterable<GradeRow> {
             studentName: g.enrollment.student.name,
             assessmentType: g.assessment.type,
             score: g.score,
-            maxScore: g.assessment.maxScore
+            maxScore: g.assessment.maxScore,
           },
-          done: false
+          done: false,
         };
-      }
+      },
     };
   }
 }

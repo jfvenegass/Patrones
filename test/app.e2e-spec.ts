@@ -1,25 +1,42 @@
-import { Test, TestingModule } from '@nestjs/testing';
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+import { Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
-import { App } from 'supertest/types';
-import { AppModule } from './../src/app.module';
+import request from 'supertest';
+import { ReportsModule } from '../src/reports/reports.module';
+import { PrismaService } from '../src/prisma/prisma.service';
 
-describe('AppController (e2e)', () => {
-  let app: INestApplication<App>;
+describe('Reports (e2e) standalone', () => {
+  let app: INestApplication;
+  let prisma: PrismaService;
+  let sectionId: string;
 
-  beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+  beforeAll(async () => {
+    const modRef = await Test.createTestingModule({
+      imports: [ReportsModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
+    app = modRef.createNestApplication();
     await app.init();
+
+    prisma = modRef.get(PrismaService);
+    const section = await prisma.section.findFirst();
+    if (!section) throw new Error('No hay Section en la BD (corre el seed).');
+    sectionId = section.id;
   });
 
-  it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello World!');
+  afterAll(async () => {
+    await app.close();
+  });
+
+  it('GET /reports/grades responde 200 y contrato', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/reports/grades')
+      .query({ sectionId })
+      .expect(200);
+
+    expect(res.body).toHaveProperty('meta');
+    expect(res.body.meta.sectionId).toBe(sectionId);
+    expect(Array.isArray(res.body.rows)).toBe(true);
   });
 });

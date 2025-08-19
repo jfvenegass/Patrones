@@ -30,13 +30,18 @@ export class TableJsonBuilder implements ReportBuilder<TableReport> {
   }
 
   addRow(row: GradeRow): void {
-    this.rows.push({ ...row, percentage: Math.round((row.score / row.maxScore) * 100) });
+    this.rows.push({
+      ...row,
+      percentage: Math.round((row.score / row.maxScore) * 100),
+    });
   }
 
   setSummary(): void {
     const total = this.rows.length;
     const avgScore = total
-      ? Math.round((this.rows.reduce((acc, r) => acc + r.score, 0) / total) * 100) / 100
+      ? Math.round(
+          (this.rows.reduce((acc, r) => acc + r.score, 0) / total) * 100,
+        ) / 100
       : 0;
     this.meta.total = total;
     this.meta.avgScore = avgScore;

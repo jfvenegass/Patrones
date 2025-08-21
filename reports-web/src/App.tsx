@@ -37,7 +37,7 @@ export default function App() {
     setError(null);
     setData(null);
     try {
-      const res = await api.get<TableReport>('/reports/generate', { params: { nrcId, title } });
+      const res = await api.get<TableReport>('/reports/grades', { params: { nrcId, title } });
       setData(res.data);
       // Ajustar rangos a los valores reales
       const sMax = Math.max(...res.data.rows.map(r => r.score), 0);

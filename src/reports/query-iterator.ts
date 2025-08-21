@@ -16,7 +16,7 @@ export class ReportIterator implements AsyncIterable<GradeRow> {
   constructor(
     private prisma: PrismaClient,
     private nrcId: string,
-    private pageSize = 1,
+    private pageSize = 100,
   ) {}
 
   [Symbol.asyncIterator](): AsyncIterator<GradeRow> {

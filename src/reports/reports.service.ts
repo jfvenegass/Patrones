@@ -5,7 +5,7 @@ import { ReportIterator } from './query-iterator';
 import { ReportBuilder, TableJsonBuilder, TableReport } from './report-builder';
 
 export type GenerateReportParams = {
-  sectionId: string;
+  nrcId: string; // Identificador del NRC (Número de Registro de Curso)
   title?: string;
   format?: 'table';
   pageSize?: number;
@@ -20,14 +20,14 @@ export class ReportsService {
     const title = params.title ?? 'Reporte de Calificaciones';
     const iterator = new ReportIterator(
       this.prisma,
-      params.sectionId,
+      params.nrcId,
       params.pageSize ?? 100,
     );
 
     //Builder concreto (table/json)
     const builder: ReportBuilder<TableReport> = new TableJsonBuilder();
     builder.reset();
-    builder.setMeta({ title, sectionId: params.sectionId });
+    builder.setMeta({ title, nrcId: params.nrcId });
 
     for await (const row of iterator) {
       builder.addRow(row);

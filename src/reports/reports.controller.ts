@@ -1,24 +1,20 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { ReportsService, GenerateReportParams } from './reports.service';
+import { ReportsService } from './reports.service';
+import type { TableReport } from './report-builder';
 
 @Controller('reports')
 export class ReportsController {
-  constructor(private readonly reportsService: ReportsService) {}
+  prisma: any;
+  constructor(private readonly reports: ReportsService) {}
 
-  @Get('generate')
-  async generateReport(
-    @Query('sectionId') nrcId: string,
+  @Get('grades')
+  async grades(
+    @Query('nrcId') nrcId: string,
     @Query('title') title?: string,
-    @Query('format') format?: 'table',
-    @Query('pageSize') pageSize?: number,
-  ) {
-    const params: GenerateReportParams = {
-      nrcId,
-      title,
-      format,
-      pageSize: pageSize ? Number(pageSize) : undefined,
-    };
-
-    return this.reportsService.generate(params);
+    @Query('pageSize') pageSize?: string,
+  ): Promise<TableReport> {
+    if (!nrcId) throw new Error('Falta nrcId');
+    const ps = pageSize ? Number(pageSize) : undefined;
+    return this.reports.generate({ nrcId, title, pageSize: ps });
   }
 }

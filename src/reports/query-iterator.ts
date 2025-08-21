@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 // Patrón Iterator (recorremos el dataset por páginas)
 import { PrismaClient } from '@prisma/client';
 

@@ -3,7 +3,7 @@ import { GradeRow } from './query-iterator';
 
 export interface ReportBuilder<TOut> {
   reset(): void;
-  setMeta(meta: { title: string; sectionId: string }): void;
+  setMeta(meta: { title: string; nrcId: string }): void;
   addRow(row: GradeRow): void;
   setSummary(): void;
   build(): TOut;
@@ -11,7 +11,7 @@ export interface ReportBuilder<TOut> {
 
 //Implementación JSON tabular (simple y rápida)
 export type TableReport = {
-  meta: { title: string; sectionId: string; total: number; avgScore: number };
+  meta: { title: string; nrcId: string; total: number; avgScore: number };
   rows: Array<GradeRow & { percentage: number }>;
 };
 
@@ -20,13 +20,13 @@ export class TableJsonBuilder implements ReportBuilder<TableReport> {
   private rows: Array<GradeRow & { percentage: number }> = [];
 
   reset(): void {
-    this.meta = { title: '', sectionId: '', total: 0, avgScore: 0 };
+    this.meta = { title: '', nrcId: '', total: 0, avgScore: 0 };
     this.rows = [];
   }
 
-  setMeta(meta: { title: string; sectionId: string }): void {
+  setMeta(meta: { title: string; nrcId: string }): void {
     this.meta.title = meta.title;
-    this.meta.sectionId = meta.sectionId;
+    this.meta.nrcId = meta.nrcId;
   }
 
   addRow(row: GradeRow): void {

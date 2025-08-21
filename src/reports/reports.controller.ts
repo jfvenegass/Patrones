@@ -7,13 +7,13 @@ export class ReportsController {
 
   @Get('generate')
   async generateReport(
-    @Query('sectionId') sectionId: string,
+    @Query('sectionId') nrcId: string,
     @Query('title') title?: string,
     @Query('format') format?: 'table',
     @Query('pageSize') pageSize?: number,
   ) {
     const params: GenerateReportParams = {
-      sectionId,
+      nrcId,
       title,
       format,
       pageSize: pageSize ? Number(pageSize) : undefined,

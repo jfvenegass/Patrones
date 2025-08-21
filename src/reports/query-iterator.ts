@@ -1,4 +1,5 @@
-//Patron Iterator (Recorremos el dataset por páginas)
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+// Patrón Iterator (recorremos el dataset por páginas)
 import { PrismaClient } from '@prisma/client';
 
 export type GradeRow = {
@@ -11,10 +12,11 @@ export type GradeRow = {
 
 export class ReportIterator implements AsyncIterable<GradeRow> {
   private cursor = 0;
+
   constructor(
     private prisma: PrismaClient,
-    private sectionId: string,
-    private pageSize = 100,
+    private nrcId: string,
+    private pageSize = 1,
   ) {}
 
   [Symbol.asyncIterator](): AsyncIterator<GradeRow> {
@@ -22,21 +24,22 @@ export class ReportIterator implements AsyncIterable<GradeRow> {
       next: async () => {
         const rows = await this.prisma.grade.findMany({
           skip: this.cursor,
-          take: 1, //Devolvemos de a 1 para demostrar Iterator fino
-          where: { enrollment: { sectionId: this.sectionId } },
+          take: this.pageSize,
+          where: {
+            enrollment: { nrcId: this.nrcId },
+          },
           include: {
             assessment: true,
             enrollment: { include: { student: true } },
           },
-          orderBy: { recordedAt: 'asc' },
+          orderBy: { createdAt: 'asc' },
         });
 
         if (rows.length === 0) {
           return { value: undefined, done: true };
         }
-
         const g = rows[0];
-        this.cursor += 1;
+        this.cursor += this.pageSize;
 
         return {
           value: {

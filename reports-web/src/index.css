@@ -110,6 +110,11 @@ body{ margin:0; background:var(--bg); color:var(--text); font-family: Inter, sys
 .table tbody tr:hover{ background:#111114; }
 .th-active{ color:#fff; }
 .sort{ margin-left:6px; color:var(--muted); }
+.table-scroll {
+  max-height: 300px;   
+  overflow-y: auto;    
+  overflow-x: auto;
+}
 
 /* Chips en celdas */
 .tag{

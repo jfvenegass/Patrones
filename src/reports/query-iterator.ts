@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-// Patrón Iterator (recorremos el dataset por páginas)
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Grade } from '@prisma/client';
 
 export type GradeRow = {
   studentCode: string;
@@ -11,35 +9,51 @@ export type GradeRow = {
 };
 
 export class ReportIterator implements AsyncIterable<GradeRow> {
-  private cursor = 0;
+  private lastId: string | null = null;
+  private buffer: (Grade & {
+    assessment: { type: string; maxScore: number };
+    enrollment: { student: { code: string; name: string } };
+  })[] = [];
+  private idx = 0;
 
   constructor(
     private prisma: PrismaClient,
     private nrcId: string,
     private pageSize = 100,
-  ) {}
+   ) {
+    // Saneamiento: evitar pageSize <= 0 o ridículamente pequeño
+    if (!Number.isFinite(this.pageSize) || this.pageSize <= 0) {
+      this.pageSize = 100;
+    }
+  }
 
   [Symbol.asyncIterator](): AsyncIterator<GradeRow> {
     return {
       next: async () => {
-        const rows = await this.prisma.grade.findMany({
-          skip: this.cursor,
-          take: this.pageSize,
-          where: {
-            enrollment: { nrcId: this.nrcId },
-          },
-          include: {
-            assessment: true,
-            enrollment: { include: { student: true } },
-          },
-          orderBy: { createdAt: 'asc' },
-        });
+        if (this.idx >= this.buffer.length) {
+          // Siguiente página por cursor estable en id
+          const where = { enrollment: { nrcId: this.nrcId } } as const;
 
-        if (rows.length === 0) {
-          return { value: undefined, done: true };
+          const page = await this.prisma.grade.findMany({
+            where,
+            take: this.pageSize,
+            ...(this.lastId ? { cursor: { id: this.lastId }, skip: 1 } : {}),
+            orderBy: { id: 'asc' }, // orden total, estable
+            include: {
+              assessment: true,
+              enrollment: { include: { student: true } },
+            },
+          });
+
+          if (page.length === 0) {
+            return { value: undefined, done: true };
+          }
+
+          this.buffer = page;
+          this.idx = 0;
+          this.lastId = page[page.length - 1].id; // avanzar cursor
         }
-        const g = rows[0];
-        this.cursor += this.pageSize;
+        const g = this.buffer[this.idx++];
 
         return {
           value: {

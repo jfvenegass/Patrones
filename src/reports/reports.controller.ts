@@ -1,24 +1,32 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { ReportsService, GenerateReportParams } from './reports.service';
+import { ReportsService } from './reports.service';
+import type { TableReport } from './report-builder';
 
 @Controller('reports')
 export class ReportsController {
-  constructor(private readonly reportsService: ReportsService) {}
+  prisma: any;
+  constructor(private readonly reports: ReportsService) {}
 
   @Get('generate')
-  async generateReport(
-    @Query('sectionId') nrcId: string,
+  async grades(
+    @Query('nrcId') nrcId: string,
     @Query('title') title?: string,
-    @Query('format') format?: 'table',
-    @Query('pageSize') pageSize?: number,
-  ) {
-    const params: GenerateReportParams = {
-      nrcId,
-      title,
-      format,
-      pageSize: pageSize ? Number(pageSize) : undefined,
-    };
+    @Query('pageSize') pageSize?: string,
+  ): Promise<TableReport> {
+    if (!nrcId) throw new Error('Falta nrcId');
 
-    return this.reportsService.generate(params);
+    let ps: number | undefined = undefined;
+    if (typeof pageSize === 'string') {
+      const n = Number(pageSize);
+      if (Number.isFinite(n) && n > 0) ps = n; // solo aceptamos > 0
+    }
+
+    return this.reports.generate({ nrcId, title, pageSize: ps });
+  }
+
+  @Get('debug')
+  async debug(@Query('nrcId') nrcId: string) {
+    if (!nrcId) throw new Error('Falta nrcId');
+    return this.reports.debug(nrcId);
   }
 }

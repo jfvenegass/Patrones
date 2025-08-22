@@ -36,4 +36,11 @@ export class ReportsService {
     builder.setSummary();
     return builder.build();
   }
+  // Método de depuración para contar registros, no forma parte de la fachada
+  async debug(nrcId: string) {
+    const total = await this.prisma.grade.count({
+      where: { enrollment: { nrcId } },
+    });
+    return { total };
+  }
 }
